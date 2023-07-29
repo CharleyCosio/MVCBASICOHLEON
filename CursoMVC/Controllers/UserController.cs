@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using CursoMVC.Models.TableViewModels;
+using CursoMVC.Models.ViewModels;
 using CursoMVC.Models;
 
 namespace CursoMVC.Controllers
@@ -30,5 +31,98 @@ namespace CursoMVC.Controllers
 
             return View(lst);
         }
+
+        [HttpGet]
+        public ActionResult Add()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Add(UserViewModel model )
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (var db=new cursomvcEntities())
+            {
+                user oUser = new user();
+                oUser.idState = 1;
+                oUser.email = model.Email;
+                oUser.edad = model.Edad;
+                oUser.password = model.Password;
+
+                db.user.Add(oUser);
+                db.SaveChanges();
+            }
+
+            return Redirect(Url.Content("~/User/"));
+
+        }
+
+        public ActionResult Edit(int Id)
+        {
+            EditUserViewModel model = new EditUserViewModel();
+
+            using (var db=new cursomvcEntities())
+            {
+                var oUser = db.user.Find(Id);
+                model.Edad =(int) oUser.edad;
+                model.Email = oUser.email;
+                model.id= oUser.id;
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult Edit(EditUserViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (var db = new cursomvcEntities())
+            {
+                var oUser = db.user.Find(model.id);
+                oUser.email = model.Email;
+                oUser.edad = model.Edad;
+   
+                if(model.Password!=null && model.Password.Trim() != "")
+                {
+                    oUser.password = model.Password;
+                }
+
+                db.Entry(oUser).State = System.Data.Entity.EntityState.Modified;
+                db.SaveChanges();
+
+            }
+
+
+
+            return Redirect(Url.Content("~/User/"));
+
+        }
+
+        [HttpPost]
+        public ActionResult Delete(int Id)
+        {
+            using (var db = new cursomvcEntities())
+            {
+                var oUser = db.user.Find(Id);
+                oUser.idState = 3;
+                db.Entry(oUser).State = System.Data.Entity.EntityState.Modified;
+                db.SaveChanges();
+
+            }
+
+            return Content("1");
+
+        }
+
+
     }
 }
